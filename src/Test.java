@@ -79,16 +79,6 @@ public class Test {
 			public void actionPerformed(ActionEvent e) {
 				if (isConnected && !jtf_username.getText().isEmpty() && jpf_password.getPassword().length>0)
 				{
-					if(login_pw==null){
-						System.out.println("login_pw==null");
-					}
-					if(jtf_username==null){
-						System.out.println("jtf_username==null");
-					}
-					if(jpf_password==null){
-						System.out.println("jpf_password==null");
-					}
-					
 					
 					login_pw.println(jtf_username.getText() + "@192.168.1.104;" + new String(jpf_password.getPassword()));
 					login_pw.flush();
