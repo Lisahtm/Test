@@ -1,16 +1,32 @@
 package cn.buptsse.test;
+
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import com.rabbitmq.client.QueueingConsumer;
 
+/**
+ * (临时的) Rabbitmq 工具类
+ * 
+ * 用法： 1. 在 login 之后，用己方 sip 地址做参数，构造 RabbitmqUtil.MqWatcher
+ * 对象，补完其onJitsiCheckRequest方法和onJitsiOkResponce方法，然后用其构造线程并 start(). ex: new
+ * Thread(new RabbitmqUtil.MqWatcher("me@192.168.1.104"){ public void
+ * onJitsiCheckRequest(String requesterId){} public void
+ * onJitsiOkResponce(String responcerId){} }).start();
+ * 
+ * 2. 呼叫前调用 RabbitmqUtil.sendJitsiCheckRequest
+ * 
+ * 3. 确保己方jitsi正常后调用 RabbitmqUtil.sendJitsiOkResponse
+ * 
+ * @author lee
+ * @version 201309301644 *
+ */
 public class RabbitmqUtil {
 
 	private final static String MQ_HOST = "192.168.1.104";
 	private static final String EXCHANGE_NAME = "Iqq_Test_Exchange";
-	
 
-	public static void MqSend(String type, String senderId, String receiverId) {
+	public static void MqSend(String tag, String senderId, String receiverId) {
 		try {
 			ConnectionFactory factory = new ConnectionFactory();
 			factory.setHost(MQ_HOST);
@@ -19,7 +35,7 @@ public class RabbitmqUtil {
 			channel.exchangeDeclare(EXCHANGE_NAME, "direct");// routing 模式
 
 			String routingKey = "route:" + receiverId;
-			String messageToSend = type + ";" + senderId + ";" + receiverId;
+			String messageToSend = tag + ";" + senderId + ";" + receiverId;
 			channel.basicPublish(EXCHANGE_NAME, routingKey, null,
 					messageToSend.getBytes());
 			System.out.println(" [MQ] Sent '" + routingKey + "':'"
@@ -33,8 +49,22 @@ public class RabbitmqUtil {
 
 	}
 
-	// 接收 rabbitMQ 消息的线程
-	public static class MqWatcher implements Runnable {
+	/**
+	 * 呼叫前调用
+	 * */
+	public static void sendJitsiCheckRequest(String senderId, String receiverId) {
+		MqSend("checkjitsi", senderId, receiverId);
+	}
+
+	/**
+	 * 确保己方jitsi正常后调用
+	 * */
+	public static void sendJitsiOkResponse(String receiverId) {
+		MqSend("jitsiok", "USELESS_SENDER_ID", receiverId);
+	}
+
+	// 接收 rabbitMQ 消息的 Runnable
+	public static abstract class MqWatcher implements Runnable {
 		private ConnectionFactory factory;
 		private Connection connection;
 		private Channel channel;
@@ -74,22 +104,42 @@ public class RabbitmqUtil {
 					QueueingConsumer.Delivery delivery = consumer
 							.nextDelivery();
 					String message = new String(delivery.getBody());
-					String routingKeyGotFromDelivery = delivery.getEnvelope()
-							.getRoutingKey();
+					// String routingKeyGotFromDelivery = delivery.getEnvelope()
+					// .getRoutingKey();
+					System.out.println(" [MQ] Received '" + "':'" + message
+							+ "'");
 
-					System.out
-							.println(" [MQ] Received '"
-									+ routingKeyGotFromDelivery + "':'"
-									+ message + "'");
+					String[] sp = message.split(";");
+					onMessage(sp[0], sp[1], sp[2]);
+
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
 			}
 		}
 
-		public void onMessage() {// 检查己方状态；确认良好后，通过 MqSend 方法回发
-			// checkStatusAllRight();
-			
+		public void onMessage(String tag, String senderId, String receiverId) {
+			if (tag.equals("checkjitsi")) {
+				onJitsiCheckRequest(senderId);
+			} else if (tag.equals("jitsiok")) {
+				onJitsiOkResponse(senderId);
+			} else {
+				System.err.println("[MQ] Receive message with unknown tag '"
+						+ tag + "'.");
+			}
 		}
+
+		/**
+		 * 触发条件：接收到对方IQQ的“检查jitsi状态，确保开启”的请求。
+		 * 
+		 * @param requestSenderId
+		 *            : 对方sip id
+		 * */
+		public abstract void onJitsiCheckRequest(String requesterId);
+
+		/**
+		 * 触发条件：接收到对方IQQ的“jitsi状态已经正常”的回应。
+		 * */
+		public abstract void onJitsiOkResponse(String responserId);
 	}
 }

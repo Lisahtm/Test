@@ -23,9 +23,6 @@ import cn.buptsse.test.RabbitmqUtil;
 import cn.buptsse.test.RabbitmqUtil.MqWatcher;
 
 public class Test {
-	
-	
-
 	private final String SIP_HOST = "192.168.1.104";
 
 	private final String JITSI_BUILDXML_FILE_LOCATION_LINUX = "/home/snowonion/workshop/jitsi-src-2.2.4603.9615(changed)/build.xml";
@@ -33,7 +30,6 @@ public class Test {
 	private final String JITSI_BUILDXML_FILE_LOCATION_WIN = "F:/Data/Yunio/Workshop/JavaWorkspace/jitsi-src-2.2.4603.9615(changed)/build.xml";
 	private final String ANT_WIN = "D:/Software/Work/apache-ant-1.9.2/bin/ant.bat";
 
-	// 有待做检测
 	private String JITSI_BUILDXML_FILE_LOCATION = null;
 	private String ANT = null;
 
@@ -162,18 +158,7 @@ public class Test {
 			public void actionPerformed(ActionEvent e) {
 				String receiverId = jtf_callWho.getText();
 				// 发送check消息，让对方iqq察看jitsi状态
-				RabbitmqUtil.MqSend("check", currentSipId, receiverId);
-
-				// // call 的部分
-				// if (isConnected && !jtf_callWho.getText().isEmpty()) {
-				// account_pw.println("call:" + jtf_callWho.getText());
-				// account_pw.flush();
-				// System.out.println("Call " + jtf_callWho.getText()
-				// + " command sent.");
-				// jtf_callWho.setText("");
-				// } else {
-				// System.out.println("No client connected.");
-				// }
+				RabbitmqUtil.sendJitsiCheckRequest(currentSipId, receiverId);
 			}
 
 		});
@@ -268,8 +253,42 @@ public class Test {
 							// login 之后，启动监听 mq 消息的进程，其中的 queue 用 currentSipId
 							// 构造
 
-							new Thread(new RabbitmqUtil.MqWatcher(currentSipId))
-									.start();
+							new Thread(
+									new RabbitmqUtil.MqWatcher(currentSipId) {
+
+										@Override
+										public void onJitsiCheckRequest(
+												String requesterId) {
+											// 假设此时瞬间检测完成
+											System.out.println("假设此时瞬间检测完成");
+											RabbitmqUtil
+													.sendJitsiOkResponse(requesterId);
+										}
+
+										@Override
+										public void onJitsiOkResponse(
+												String responserId) {
+											// call the responser~
+											System.out
+													.println("call the responser~ "
+															+ responserId);
+											// // call 的部分
+											String callWho = responserId;
+											if (isConnected
+													&& !callWho.isEmpty()) {
+												account_pw.println("call:"
+														+ callWho);
+												account_pw.flush();
+												System.out.println("Call "
+														+ callWho
+														+ " command sent.");
+												jtf_callWho.setText("");
+											} else {
+												System.out
+														.println("No client connected.");
+											}
+										}
+									}).start();
 
 						} else
 							System.out.println("Disconnected");
@@ -279,6 +298,12 @@ public class Test {
 				}
 			}
 		}.start();
+	}
+
+	public void finalize() {
+		// 尝试在关闭Test窗口时干掉jitsi // 貌似不行
+		System.out.println("Try to destroy jitsiProcess in finalize().");
+		jitsiProcess.destroy();
 	}
 
 	/**
