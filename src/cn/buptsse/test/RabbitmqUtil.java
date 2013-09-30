@@ -120,9 +120,9 @@ public class RabbitmqUtil {
 
 		public void onMessage(String tag, String senderId, String receiverId) {
 			if (tag.equals("checkjitsi")) {
-				onJitsiCheckRequest(senderId);
+				onJitsiCheckRequest(senderId,receiverId);
 			} else if (tag.equals("jitsiok")) {
-				onJitsiOkResponse(senderId);
+				onJitsiOkResponse(receiverId,senderId);
 			} else {
 				System.err.println("[MQ] Receive message with unknown tag '"
 						+ tag + "'.");
@@ -135,11 +135,11 @@ public class RabbitmqUtil {
 		 * @param requestSenderId
 		 *            : 对方sip id
 		 * */
-		public abstract void onJitsiCheckRequest(String requesterId);
+		public abstract void onJitsiCheckRequest(String requesterId,String responserId);
 
 		/**
 		 * 触发条件：接收到对方IQQ的“jitsi状态已经正常”的回应。
 		 * */
-		public abstract void onJitsiOkResponse(String responserId);
+		public abstract void onJitsiOkResponse(String requesterId,String responserId);
 	}
 }
