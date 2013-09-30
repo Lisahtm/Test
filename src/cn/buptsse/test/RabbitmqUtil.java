@@ -73,18 +73,20 @@ public class RabbitmqUtil {
 		private QueueingConsumer consumer;
 
 		public MqWatcher(String id) {
+			queueName = "queue:" + id;// 用自己的用户名构造唯一的Queue
+			routingKey = "route:" + id;// 路由规则:
+			// 只接受“路由键==自己的用户名构造的路由键”的消息
+		}
+
+		@Override
+		public void run() {
 			try {
 				factory = new ConnectionFactory();
 				factory.setHost(MQ_HOST);
 				connection = factory.newConnection();
 				channel = connection.createChannel();
-				channel.exchangeDeclare(EXCHANGE_NAME, "direct");// 声明Exchange
-
-				queueName = "queue:" + id;// 用自己的用户名构造唯一的Queue
+				channel.exchangeDeclare(EXCHANGE_NAME, "direct");// 声明Exchange				
 				channel.queueDeclare(queueName, false, false, false, null);
-
-				routingKey = "route:" + id;// 路由规则:
-											// 只接受“路由键==自己的用户名构造的路由键”的消息
 				channel.queueBind(queueName, EXCHANGE_NAME, routingKey);// 把Queue、Exchange及路由绑定
 
 				System.out.println(" [MQ] Queue" + queueName
@@ -95,10 +97,6 @@ public class RabbitmqUtil {
 			} catch (Exception ex) {
 				ex.printStackTrace();
 			}
-		}
-
-		@Override
-		public void run() {
 			while (true) {
 				try {
 					QueueingConsumer.Delivery delivery = consumer

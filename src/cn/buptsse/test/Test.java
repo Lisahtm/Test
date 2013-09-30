@@ -301,6 +301,8 @@ public class Test {
 			}
 		}.start();
 	}
+	
+	
 
 	public void finalize() {
 		// 尝试在关闭Test窗口时干掉jitsi // 貌似不行
