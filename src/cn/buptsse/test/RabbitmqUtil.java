@@ -10,9 +10,13 @@ import com.rabbitmq.client.QueueingConsumer;
  * 
  * 用法： 1. 在 login 之后，用己方 sip 地址做参数，构造 RabbitmqUtil.MqWatcher
  * 对象，补完其onJitsiCheckRequest方法和onJitsiOkResponce方法，然后用其构造线程并 start(). ex: new
- * Thread(new RabbitmqUtil.MqWatcher("me@192.168.1.104"){ public void
- * onJitsiCheckRequest(String requesterId){} public void
- * onJitsiOkResponce(String responcerId){} }).start();
+ * Thread(new RabbitmqUtil.MqWatcher("me@192.168.1.104"){
+ * 
+ * public void onJitsiCheckRequest(String requesterId){}
+ * 
+ * public void onJitsiOkResponce(String responcerId){}
+ * 
+ * }).start();
  * 
  * 2. 呼叫前调用 RabbitmqUtil.sendJitsiCheckRequest
  * 
@@ -59,7 +63,7 @@ public class RabbitmqUtil {
 	/**
 	 * 确保己方jitsi正常后调用
 	 * */
-	public static void sendJitsiOkResponse(String senderId,String receiverId) {
+	public static void sendJitsiOkResponse(String senderId, String receiverId) {
 		MqSend("jitsiok", senderId, receiverId);
 	}
 
@@ -85,7 +89,7 @@ public class RabbitmqUtil {
 				factory.setHost(MQ_HOST);
 				connection = factory.newConnection();
 				channel = connection.createChannel();
-				channel.exchangeDeclare(EXCHANGE_NAME, "direct");// 声明Exchange				
+				channel.exchangeDeclare(EXCHANGE_NAME, "direct");// 声明Exchange
 				channel.queueDeclare(queueName, false, false, false, null);
 				channel.queueBind(queueName, EXCHANGE_NAME, routingKey);// 把Queue、Exchange及路由绑定
 
@@ -118,9 +122,9 @@ public class RabbitmqUtil {
 
 		public void onMessage(String tag, String senderId, String receiverId) {
 			if (tag.equals("checkjitsi")) {
-				onJitsiCheckRequest(senderId,receiverId);
+				onJitsiCheckRequest(senderId, receiverId);
 			} else if (tag.equals("jitsiok")) {
-				onJitsiOkResponse(receiverId,senderId);
+				onJitsiOkResponse(receiverId, senderId);
 			} else {
 				System.err.println("[MQ] Receive message with unknown tag '"
 						+ tag + "'.");
@@ -133,11 +137,13 @@ public class RabbitmqUtil {
 		 * @param requestSenderId
 		 *            : 对方sip id
 		 * */
-		public abstract void onJitsiCheckRequest(String requesterId,String responserId);
+		public abstract void onJitsiCheckRequest(String requesterId,
+				String responserId);
 
 		/**
 		 * 触发条件：接收到对方IQQ的“jitsi状态已经正常”的回应。
 		 * */
-		public abstract void onJitsiOkResponse(String requesterId,String responserId);
+		public abstract void onJitsiOkResponse(String requesterId,
+				String responserId);
 	}
 }
