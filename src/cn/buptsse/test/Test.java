@@ -258,15 +258,17 @@ public class Test {
 
 										@Override
 										public void onJitsiCheckRequest(
-												String requesterId) {
+												String requesterId,
+												String responserId) {
 											// 假设此时瞬间检测完成
 											System.out.println("假设此时瞬间检测完成");
-											RabbitmqUtil
-													.sendJitsiOkResponse(requesterId);
+											RabbitmqUtil.sendJitsiOkResponse(
+													responserId, requesterId);
 										}
 
 										@Override
 										public void onJitsiOkResponse(
+												String requesterId,
 												String responserId) {
 											// call the responser~
 											System.out
