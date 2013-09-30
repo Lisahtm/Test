@@ -59,8 +59,8 @@ public class RabbitmqUtil {
 	/**
 	 * 确保己方jitsi正常后调用
 	 * */
-	public static void sendJitsiOkResponse(String receiverId) {
-		MqSend("jitsiok", "USELESS_SENDER_ID", receiverId);
+	public static void sendJitsiOkResponse(String senderId,String receiverId) {
+		MqSend("jitsiok", senderId, receiverId);
 	}
 
 	// 接收 rabbitMQ 消息的 Runnable
