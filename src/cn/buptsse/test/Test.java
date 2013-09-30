@@ -23,6 +23,8 @@ import cn.buptsse.test.RabbitmqUtil;
 import cn.buptsse.test.RabbitmqUtil.MqWatcher;
 
 public class Test {
+	
+	
 
 	private final String SIP_HOST = "192.168.1.104";
 
@@ -73,7 +75,7 @@ public class Test {
 			ANT = ANT_LINUX;
 		} else {
 			System.err
-					.println("This software will not likely work on your OS.");
+					.println("This software will not likely to work on your OS.");
 			return;
 		}
 
