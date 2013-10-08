@@ -49,6 +49,7 @@ public class Test {
 	private JLabel jl_callWho = null;
 	private JTextField jtf_callWho = null;
 	private JButton jb_jitsilogin = null;
+	private JButton jb_purelogin = null;
 	private JButton jb_call = null;
 	private JButton jb_mqcall = null;
 	private JButton jb_offline = null;
@@ -129,8 +130,29 @@ public class Test {
 			}
 		});
 
+		jb_purelogin = new JButton("PureLogin");
+		jb_purelogin.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (isConnected && !jtf_username.getText().isEmpty()
+						&& jpf_password.getPassword().length > 0) {
+
+					currentSipId = jtf_username.getText() + "@" + SIP_HOST;
+
+					login_pw.println(jtf_username.getText() + "@" + SIP_HOST
+							+ ";" + new String(jpf_password.getPassword()));
+					login_pw.flush();
+					System.out.println("Login with " + jtf_username.getText());
+
+				} else {
+					System.out.println("Disconnected");
+				}
+			}
+		});
+
 		jp_login = new JPanel();
 		jp_login.add(jb_jitsilogin);
+		jp_login.add(jb_purelogin);
 		jFrame.add(jp_login, BorderLayout.WEST);
 
 		jb_call = new JButton("Call");
@@ -196,8 +218,7 @@ public class Test {
 
 		jFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-		// 监听 login 模块的线程
-		// lee: 我不太确定上面这句注释的意思……
+		// 监听 call 和 offline 模块的线程
 		new Thread() {
 			@Override
 			public void run() {
@@ -219,8 +240,7 @@ public class Test {
 			}
 		}.start();
 
-		// 监听 call 和 offline 模块的线程
-		// lee: 我不太确定上面这句注释的意思……
+		// 监听 login 模块的线程
 		new Thread() {
 			@Override
 			public void run() {
@@ -292,8 +312,9 @@ public class Test {
 										}
 									}).start();
 
-						} else
+						} else {
 							System.out.println("Disconnected");
+						}
 					}
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -301,8 +322,6 @@ public class Test {
 			}
 		}.start();
 	}
-	
-	
 
 	public void finalize() {
 		// 尝试在关闭Test窗口时干掉jitsi // 貌似不行
