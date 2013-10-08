@@ -61,7 +61,7 @@ public class RabbitmqUtil {
 	}
 
 	/**
-	 * 确保己方jitsi正常后调用
+	 * 确保己方 jitsi 正常后调用
 	 * */
 	public static void sendJitsiOkResponse(String senderId, String receiverId) {
 		MqSend("jitsiok", senderId, receiverId);
