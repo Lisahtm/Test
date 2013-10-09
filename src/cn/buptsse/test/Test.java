@@ -25,7 +25,7 @@ import cn.buptsse.test.RabbitmqUtil.MqWatcher;
 
 public class Test {
 	private final String SIP_HOST = "192.168.1.104";
-
+// lisa 到此一游
 	private final String JITSI_BUILDXML_FILE_LOCATION_LINUX = "/home/snowonion/workshop/jitsi-src-2.2.4603.9615(changed)/build.xml";
 	private final String ANT_LINUX = "ant";
 	private final String JITSI_BUILDXML_FILE_LOCATION_WIN = "F:/Data/Yunio/Workshop/JavaWorkspace/jitsi-src-2.2.4603.9615(changed)/build.xml";
