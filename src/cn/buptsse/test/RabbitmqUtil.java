@@ -23,33 +23,37 @@ import com.rabbitmq.client.QueueingConsumer;
  * 3. 确保己方jitsi正常后调用 RabbitmqUtil.sendJitsiOkResponse
  * 
  * @author lee
- * @version 201309301644 *
+ * @version 201310091656 *
  */
 public class RabbitmqUtil {
 
 	private final static String MQ_HOST = "192.168.1.104";
 	private static final String EXCHANGE_NAME = "Iqq_Test_Exchange";
 
-	public static void MqSend(String tag, String senderId, String receiverId) {
-		try {
-			ConnectionFactory factory = new ConnectionFactory();
-			factory.setHost(MQ_HOST);
-			Connection connection = factory.newConnection();
-			Channel channel = connection.createChannel();
-			channel.exchangeDeclare(EXCHANGE_NAME, "direct");// routing 模式
+	public static void MqSend(final String tag, final String senderId, final String receiverId) {
+		new Thread(){ // 防止安卓主线程联网
+			public void run(){
+				try {
+					ConnectionFactory factory = new ConnectionFactory();
+					factory.setHost(MQ_HOST);
+					Connection connection = factory.newConnection();
+					Channel channel = connection.createChannel();
+					channel.exchangeDeclare(EXCHANGE_NAME, "direct");// routing 模式
 
-			String routingKey = "route:" + receiverId;
-			String messageToSend = tag + ";" + senderId + ";" + receiverId;
-			channel.basicPublish(EXCHANGE_NAME, routingKey, null,
-					messageToSend.getBytes());
-			System.out.println(" [MQ] Sent '" + routingKey + "':'"
-					+ messageToSend + "'");
+					String routingKey = "route:" + receiverId;
+					String messageToSend = tag + ";" + senderId + ";" + receiverId;
+					channel.basicPublish(EXCHANGE_NAME, routingKey, null,
+							messageToSend.getBytes());
+					System.out.println(" [MQ] Sent '" + routingKey + "':'"
+							+ messageToSend + "'");
 
-			channel.close();
-			connection.close();
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
+					channel.close();
+					connection.close();
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			}
+		}.start();	
 
 	}
 

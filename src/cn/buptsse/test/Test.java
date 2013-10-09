@@ -410,14 +410,8 @@ public class Test {
 
 	// 确保 Jitsi 进程存在的线程
 	class JitsiAliveActivator implements Runnable {
-		private BufferedReader br;
-		private Process pr;
 
-		public JitsiAliveActivator(/* BufferedReader login_br */) {
-			// br = login_br;
-
-			// pwriter = account_pw;
-			// pr = jitsi_p;
+		public JitsiAliveActivator() {
 
 		}
 
