@@ -5,14 +5,13 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedReader;
-import java.io.File;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Timer;
-import java.util.TimerTask;
+
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -147,49 +146,49 @@ public class Test {
 			}
 		});
 
-		jb_purelogin = new JButton("PureLogin");
-		jb_purelogin.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (isConnected && !jtf_username.getText().isEmpty()
-						&& jpf_password.getPassword().length > 0) {
-
-					currentSipId = jtf_username.getText() + "@" + SIP_HOST;
-					currentSipPswd = new String(jpf_password.getPassword());
-
-					login_pw.println(jtf_username.getText() + "@" + SIP_HOST
-							+ ";" + new String(jpf_password.getPassword()));
-					login_pw.flush();
-					System.out.println("Login with " + jtf_username.getText());
-
-				} else {
-					System.out.println("Disconnected");
-				}
-			}
-		});
+//		jb_purelogin = new JButton("PureLogin");
+//		jb_purelogin.addActionListener(new ActionListener() {
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				if (isConnected && !jtf_username.getText().isEmpty()
+//						&& jpf_password.getPassword().length > 0) {
+//
+//					currentSipId = jtf_username.getText() + "@" + SIP_HOST;
+//					currentSipPswd = new String(jpf_password.getPassword());
+//
+//					login_pw.println(jtf_username.getText() + "@" + SIP_HOST
+//							+ ";" + new String(jpf_password.getPassword()));
+//					login_pw.flush();
+//					System.out.println("Login with " + jtf_username.getText());
+//
+//				} else {
+//					System.out.println("Disconnected");
+//				}
+//			}
+//		});
 
 		jp_login = new JPanel();
 		jp_login.add(jb_jitsilogin);
 		// jp_login.add(jb_purelogin);
 		jFrame.add(jp_login, BorderLayout.WEST);
 
-		jb_call = new JButton("Call");
-		jb_call.addActionListener(new ActionListener() {
-
-			// 向 jitsi 传被呼叫方 sip 地址
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (isConnected && !jtf_callWho.getText().isEmpty()) {
-					account_pw.println("call:" + jtf_callWho.getText());
-					account_pw.flush();
-					System.out.println("Call " + jtf_callWho.getText()
-							+ " command sent.");
-					jtf_callWho.setText("");
-				} else
-					System.out.println("when calling, No client connected.");
-			}
-
-		});
+//		jb_call = new JButton("Call");
+//		jb_call.addActionListener(new ActionListener() {
+//
+//			// 向 jitsi 传被呼叫方 sip 地址
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				if (isConnected && !jtf_callWho.getText().isEmpty()) {
+//					account_pw.println("call:" + jtf_callWho.getText());
+//					account_pw.flush();
+//					System.out.println("Call " + jtf_callWho.getText()
+//							+ " command sent.");
+//					jtf_callWho.setText("");
+//				} else
+//					System.out.println("when calling, No client connected.");
+//			}
+//
+//		});
 
 		jb_mqcall = new JButton("MQ-Call");
 		jb_mqcall.addActionListener(new ActionListener() {
@@ -236,22 +235,22 @@ public class Test {
 			}
 		});
 
-		jb_guioffline = new JButton("beonline");
-		jb_guioffline.addActionListener(new ActionListener() {
-			// 向 jitsi 传 beonline 信令
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				if (isConnected) {
-					account_pw.println("beonline");
-					account_pw.flush();
-					System.out.println("beonline command sent.");
-
-				} else {
-					System.out
-							.println("when sending 'beonline', No client connected.");
-				}
-			}
-		});
+//		jb_guioffline = new JButton("beonline");
+//		jb_guioffline.addActionListener(new ActionListener() {
+//			// 向 jitsi 传 beonline 信令
+//			@Override
+//			public void actionPerformed(ActionEvent e) {
+//				if (isConnected) {
+//					account_pw.println("beonline");
+//					account_pw.flush();
+//					System.out.println("beonline command sent.");
+//
+//				} else {
+//					System.out
+//							.println("when sending 'beonline', No client connected.");
+//				}
+//			}
+//		});
 
 		jp_offline = new JPanel();
 		jp_offline.add(jb_offline);
@@ -304,7 +303,6 @@ public class Test {
 
 						// 认为此时jitsi启动成功。。 login
 						if (isConnected) {
-
 							login_pw.println(currentSipId + ";"
 									+ currentSipPswd);
 							login_pw.flush();
