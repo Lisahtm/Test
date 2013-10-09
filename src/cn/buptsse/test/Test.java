@@ -69,6 +69,9 @@ public class Test {
 	private Thread subprocessOutputListenerThread = null;
 	private Thread jitsiActivatorThread = null;
 	private Thread jitsiAliveActivatorThread = null;
+	private Thread mqWatcherThread = null;
+
+	private boolean isJitsiProcessAlive = false;
 
 	public Test() {
 
@@ -138,16 +141,6 @@ public class Test {
 							new SubprocessOutputListener(jitsiProcess));
 					subprocessOutputListenerThread.start();
 
-					// 使 Jitsi 保持在线的线程
-					jitsiActivatorThread = new Thread(new JitsiOnlineActivator(
-							account_pw, jitsiProcess));
-					jitsiActivatorThread.start();
-
-					//
-					// jitsiAliveActivatorThread = new Thread(
-					// new JitsiAliveActivator());
-					// jitsiAliveActivatorThread.start();
-
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
@@ -177,7 +170,7 @@ public class Test {
 
 		jp_login = new JPanel();
 		jp_login.add(jb_jitsilogin);
-		jp_login.add(jb_purelogin);
+		// jp_login.add(jb_purelogin);
 		jFrame.add(jp_login, BorderLayout.WEST);
 
 		jb_call = new JButton("Call");
@@ -210,7 +203,7 @@ public class Test {
 		});
 
 		jp_call = new JPanel();
-		jp_call.add(jb_call);
+		// jp_call.add(jb_call);
 		jp_call.add(jb_mqcall);
 		jFrame.add(jp_call, BorderLayout.CENTER);
 
@@ -234,7 +227,8 @@ public class Test {
 
 					subprocessOutputListenerThread.stop();
 					jitsiActivatorThread.stop();
-					// jitsiAliveActivatorThread.stop();
+					mqWatcherThread.stop();
+					jitsiAliveActivatorThread.stop();
 
 				} else
 					System.out
@@ -261,7 +255,7 @@ public class Test {
 
 		jp_offline = new JPanel();
 		jp_offline.add(jb_offline);
-		jp_offline.add(jb_guioffline);
+		// jp_offline.add(jb_guioffline);
 
 		jFrame.add(jp_offline, BorderLayout.EAST);
 
@@ -317,20 +311,46 @@ public class Test {
 							System.out.println("Login with "
 									+ jtf_username.getText());
 
-							// login 之后，启动监听 mq 消息的进程，其中的 queue 用 currentSipId
-							// 来构造
+							// login 之后，
 
-							new Thread(
+							// 1. 使 Jitsi 保持在线的线程
+							jitsiActivatorThread = new Thread(
+									new JitsiOnlineActivator(account_pw,
+											jitsiProcess));
+							jitsiActivatorThread.start();
+
+							// 2. 检查 Jitsi 进程是否存活的线程
+							jitsiAliveActivatorThread = new Thread(
+									new JitsiAliveActivator());
+							jitsiAliveActivatorThread.start();
+
+							// 3.启动监听 mq 消息的进程，其中的 queue 用 currentSipId
+							// 来构造
+							mqWatcherThread = new Thread(
 									new RabbitmqUtil.MqWatcher(currentSipId) {
 
 										@Override
 										public void onJitsiCheckRequest(
-												String requesterId,
-												String responserId) {
-											// 假设此时瞬间检测完成
-											System.out.println("假设此时瞬间检测完成");
-											RabbitmqUtil.sendJitsiOkResponse(
-													responserId, requesterId);
+												final String requesterId,
+												final String responserId) {
+											new Thread() {
+												public void run() {
+													String requesterIdAsnyc=requesterId;
+													String responserIdAsnyc=responserId;
+													while (!isJitsiProcessAlive) {
+														System.out.println("在对方请求视频时发现jitsi未活。等待jitsi重启...");
+														try {
+															Thread.sleep(1000);
+														} catch (InterruptedException e) {
+															e.printStackTrace();
+														}
+													}
+													// jitsi 重启成功
+													System.out.println("jitsi 重启成功");
+													RabbitmqUtil.sendJitsiOkResponse(
+															responserIdAsnyc, requesterIdAsnyc);													
+												}
+											}.start();
 										}
 
 										@Override
@@ -357,7 +377,8 @@ public class Test {
 														.println("when calling, No client connected.");
 											}
 										}
-									}).start();
+									});
+							mqWatcherThread.start();
 
 						} else {
 							System.out.println("Not connected");
@@ -420,7 +441,7 @@ public class Test {
 			while (true) {
 
 				try {
-					Thread.sleep(9000);
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -428,13 +449,14 @@ public class Test {
 				try {
 					System.out.println("jitsiProcess.exitValue "
 							+ jitsiProcess.exitValue());
-					System.out
-							.println("=========================我认为这意味着jitsi死亡。。。");
+					System.out.println("===============jitsi死亡。。。开始重启jitsi");
+					isJitsiProcessAlive = false;
 
-					// 处理后事, 停止与该 jitsi 进程相关的一些线程
+					// 处理后事, 停止与该 jitsi 进程相关的一些线程，其中 jitsiAliveActivatorThread
+					// 的停止要放到最后
 					subprocessOutputListenerThread.stop();
 					jitsiActivatorThread.stop();
-					// jitsiAliveActivatorThread.stop();
+					mqWatcherThread.stop();
 
 					// 重新启动 jitsi (并在之后用 currentSipId 和 currentSipPswd 登录)
 					// 和第一次启动 jitsi 代码一样。。。
@@ -449,25 +471,17 @@ public class Test {
 								new SubprocessOutputListener(jitsiProcess));
 						subprocessOutputListenerThread.start();
 
-						// 使 Jitsi 保持在线的线程
-						jitsiActivatorThread = new Thread(
-								new JitsiOnlineActivator(account_pw,
-										jitsiProcess));
-						jitsiActivatorThread.start();
-
-						//
-						// jitsiAliveActivatorThread = new Thread(
-						// new JitsiAliveActivator());
-						// jitsiAliveActivatorThread.start();
-
 					} catch (Exception ex) {
 						ex.printStackTrace();
 					}
 
+					jitsiAliveActivatorThread.stop();
+
 				} catch (Exception ex) {
 					// ex.printStackTrace();
-					System.out
-							.println("=========================我认为这意味着jitsi存活。。。");
+					// System.out
+					// .println("================jitsi存活。。。");
+					isJitsiProcessAlive = true;
 				}
 
 			}
@@ -493,7 +507,7 @@ public class Test {
 					if (isConnected) {
 						account_pw.println("beonline");
 						account_pw.flush();
-						System.out.println("beonline command sent.");
+						// System.out.println("beonline command sent.");
 
 					} else {
 						System.out
